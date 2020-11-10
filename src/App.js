@@ -1,55 +1,41 @@
-
-import { useState, useEffect } from 'react'; 
-
-// import { screen } from '@testing-library/react';
-// console.log(screen.queryByText('signed in as', {}));
-// console.log(screen.findByText(/^signed in as$/i));
-
-const getUser = () => Promise.resolve({ id: '1', name: 'Robin' });
+import React from 'react';
+import axios from 'axios';
+ 
+const URL = 'http://hn.algolia.com/api/v1/search';
  
 function App() {
-  const [search, setSearch] = useState('');
-  const [user, setUser] = useState(null);
+  const [stories, setStories] = React.useState([]);
+  const [error, setError] = React.useState(null);
  
-  useEffect(() => {
-    const loadUser = async () => {
-      const user = await getUser();
-      setUser(user);
-    };
-
-    loadUser();
-  }, []);
+  async function handleFetch(event) {
+    let result;
  
-  const handleChange = (event) => setSearch(event.target.value);
+    try {
+      result = await axios.get(`${URL}?query=React`);
+ 
+      setStories(result.data.hits);
+    } catch (error) {
+      setError(error);
+    }
+  }
  
   return (
     <div>
-      {user ? <p>Signed in as {user.name}</p> : null}
+      <button type="button" onClick={handleFetch}>
+        Fetch Stories
+      </button>
  
-      <Search value={search} onChange={handleChange}>
-        Search:
-      </Search>
+      {error && <span>Something went wrong ...</span>}
  
-      <p>Searches for {search ? search : '...'}</p>
+      <ul>
+        {stories.map((story) => (
+          <li key={story.objectID}>
+            <a href={story.url}>{story.title}</a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-
-
-export function Search({ value, onChange, children }) {
-  return (
-    <div>
-      <label htmlFor="search">{children}</label>
-      <input
-        id="search"
-        type="text"
-        value={value}
-        onChange={onChange}
-      />
-    </div>
-  );
-} 
-
-
+ 
 export default App;
-
